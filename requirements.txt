@@ -1,0 +1,6 @@
+xarray
+h5netcdf
+h5py
+s3fs
+pyproj
+numpy
