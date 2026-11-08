@@ -1,0 +1,46 @@
+name: Pronostico WRF
+
+on:
+  schedule:
+    # Hora UTC. Equivale a 00:40, 06:40, 12:40 y 18:40 en Argentina.
+    - cron: "40 3,9,15,21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  pronostico:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Generar pronóstico
+        run: |
+          mkdir -p site
+          python pronostico_wrf.py --horas 72 --salida site/index.html --no-abrir
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
